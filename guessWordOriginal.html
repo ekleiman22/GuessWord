@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+        // The requested word
+        const targetWord = "GENETIC";
+
+        // The maximum number of generations
+        const maxGenerations = 100;
+
+        // The population size
+        const populationSize = 100;
+
+        // The mutation rate
+        const mutationRate = 0.01;
+
+        // Generate a random word
+        function generateRandomWord(length) {
+            let word = "";
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            for (let i = 0; i < length; i++) {
+                word += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+            }
+            return word;
+        }
+
+        // Calculate the fitness of a word
+        function calculateFitness(word) {
+            let score = 0;
+            for (let i = 0; i < targetWord.length; i++) {
+                if (word.charAt(i) === targetWord.charAt(i)) {
+                    score++;
+                }
+            }
+            return score;
+        }
+
+        // Select two parents from the population
+        function selectParents(population) {
+            const sortedPopulation = population.sort((a, b) => b.fitness - a.fitness);
+            const totalFitness = sortedPopulation.reduce((acc, cur) => acc + cur.fitness, 0);
+            let parent1 = null;
+            let parent2 = null;
+            while (parent1 === parent2) {
+                let i = 0;
+                let cumulativeFitness = 0;
+                let randomFitness = Math.random() * totalFitness;
+                while (cumulativeFitness < randomFitness) {
+                    cumulativeFitness += sortedPopulation[i].fitness;
+                    i++;
+                }
+                parent1 = sortedPopulation[i - 1].word;
+                i = 0;
+                cumulativeFitness = 0;
+                randomFitness = Math.random() * totalFitness;
+                while (cumulativeFitness < randomFitness) {
+                    cumulativeFitness += sortedPopulation[i].fitness;
+                    i++;
+                }
+                parent2 = sortedPopulation[i - 1].word;
+            }
+            return [parent1, parent2];
+        }
+
+        // Reproduce two parents to create a new word
+        function reproduce(parent1, parent2) {
+            let child = "";
+            for (let i = 0; i < targetWord.length; i++) {
+                if (Math.random() < 0.5) {
+                    child += parent1.charAt(i);
+                } else {
+                    child += parent2.charAt(i);
+                }
+            }
+            return child;
+        }
+
+        // Mutate a word
+        function mutate(word) {
+            let newWord = "";
+            for (let i = 0; i < targetWord.length; i++) {
+                if (Math.random() < mutationRate) {
+                    newWord += generateRandomWord(1);
+                } else {
+                    newWord += word.charAt(i);
+                }
+            }
+            return newWord;
+        }
+
+        // Generate a new population
+        function generateNewPopulation(population) {
+            const newPopulation = [];
+            for (let i = 0; i < populationSize; i++) {
+                const [parent1, parent2] = selectParents(population);
+                let child = reproduce(parent1, parent2);
+                child = mutate(child);
+                const fitness = calculateFitness(child);
+                newPopulation.push({ word: child, fitness });
+                if (child === targetWord) {
+                    break;
+                }
+            }
+            return newPopulation;
+        }
+
+
+        // Run the genetic algorithm
+        function runGeneticAlgorithm() {
+            let population = [];
+            for (let i = 0; i < populationSize; i++) {
+                const word = generateRandomWord(targetWord.length);
+                const fitness = calculateFitness(word);
+                population.push({ word, fitness });
+            }
+            let generation = 0;
+            let bestWord = null;
+            while (generation < maxGenerations) {
+                population = generateNewPopulation(population);
+                bestWord = population.sort((a, b) => b.fitness - a.fitness)[0].word;
+                if (bestWord === targetWord) {
+                    break;
+                }
+                generation++;
+            }
+            const intermediateWords = population.map((individual) => individual.word);
+            intermediateWords.unshift(generateRandomWord(targetWord.length));
+            const intermediateWordsContainer = document.getElementById("intermediateWords");
+            intermediateWordsContainer.innerHTML = intermediateWords.join(" -> ");
+        }
+
+
+    </script>
+    <script>
+       
+    </script>
+</head>
+<body onload="runGeneticAlgorithm()">
+    <div>
+        Task. To build a web page that for given English word guess<br />
+        it using genetic algorithm. <br />
+        There should be an input box where an end user defines the word. <br />
+        Under this box should be another box that shows <br />
+        all intermediate words until the requested word is found.<br />
+    </div>
+  
+    <div id="intermediateWords">
+
+    </div>
+</body>
+</html>
